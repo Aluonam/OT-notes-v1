@@ -37,6 +37,18 @@ app.get('/api/client', async (req, res) => {
   }
 });
 
+app.post('/api/newClient', async (req, res)=>{
+  try{
+    const { name, surname, age, phone, family_contact } = req.body;
+    const insertClientQuery = 'INSERT INTO myclinic.patients (name, surname, age, phone, family_contact)  VALUES (?, ?, ?, ?, ?);'
+    const [result] = await db.execute(insertClientQuery, [name, surname, age, phone, family_contact]);
+    res.status(201).json({ message: 'Paciente añadido correctamente', result });
+  } catch (err) {
+    console.error('Error al insertar paciente', err);
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+})
+
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}.`);
