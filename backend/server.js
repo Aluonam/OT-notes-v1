@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
-const mysql = require('mysql2');
 const dotenv = require('dotenv');
+const db = require('./config/db');  // Importar la configuración de DB desde un archivo externo
 
 dotenv.config();
 
@@ -9,25 +9,32 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Configurar la conexión a la base de datos
-const db = mysql.createConnection({
-  host: process.env.DB_HOST,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
-});
-
-db.connect((err) => {
-  if (err) {
+// Probar conexión a la base de datos
+async function testDbConnection() {
+  try {
+    const connection = await db.getConnection();
+    console.log('Connected to the MySQL database.');
+    connection.release();
+  } catch (err) {
     console.error('Error connecting to the database:', err);
-    return;
   }
-  console.log('Connected to the MySQL database.');
-});
+}
 
-// Configura las rutas
+testDbConnection();
+
+// Configura las rutas (ejemplo básico)
 app.get('/', (req, res) => {
   res.send('Hello World!');
+});
+
+app.get('/api/client', async (req, res) => {
+  try {
+    const [results] = await db.query('SELECT * FROM myclinic.patients;');
+    res.json(results);
+  } catch (err) {
+    console.error('Error al obtener clientes:', err);
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
 });
 
 const PORT = process.env.PORT || 5000;
